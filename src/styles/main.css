@@ -63,6 +63,22 @@
         @apply transition flex items-center justify-center bg-[var(--btn-regular-bg)] hover:bg-[var(--btn-regular-bg-hover)] active:bg-[var(--btn-regular-bg-active)]
         text-[var(--btn-content)] dark:text-white/75
     }
+    .badge {
+        @apply inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium leading-tight;
+        color: var(--btn-content);
+        background: var(--btn-regular-bg);
+        border-color: var(--btn-regular-bg-hover);
+    }
+    .badge[data-variant="danger"] {
+        color: #b42318;
+        background: rgb(180 35 24 / 12%);
+        border-color: rgb(180 35 24 / 30%);
+    }
+    .dark .badge[data-variant="danger"] {
+        color: #ff8182;
+        background: rgb(248 81 73 / 18%);
+        border-color: rgb(248 81 73 / 35%);
+    }
 
     .link-underline {
         @apply transition underline decoration-2 decoration-dashed decoration-[var(--link-underline)]

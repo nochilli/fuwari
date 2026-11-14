@@ -3,6 +3,7 @@ import svelte from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
+import mdx from "@astrojs/mdx";
 import swup from "@swup/astro";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
@@ -96,6 +97,7 @@ export default defineConfig({
 				showCopyToClipboardButton: false,
 			}
 		}),
+		mdx(),
         svelte(),
 		sitemap(),
 	],

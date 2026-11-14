@@ -364,6 +364,23 @@ function showBanner() {
 	banner.classList.remove('opacity-0', 'scale-105');
 }
 
+function updateProfileVisibility(visible: boolean) {
+	const profileCard = document.getElementById('profile-card');
+	if (!profileCard || profileCard.dataset.visible === String(visible)) return;
+
+	profileCard.dataset.visible = String(visible);
+	profileCard.setAttribute('aria-hidden', String(!visible));
+	profileCard.inert = !visible;
+	profileCard.classList.toggle('grid-rows-[1fr]', visible);
+	profileCard.classList.toggle('grid-rows-[0fr]', !visible);
+	profileCard.classList.toggle('opacity-100', visible);
+	profileCard.classList.toggle('opacity-0', !visible);
+	profileCard.classList.toggle('translate-y-0', visible);
+	profileCard.classList.toggle('translate-y-8', !visible);
+	profileCard.classList.toggle('-mb-4', !visible);
+	profileCard.classList.toggle('pointer-events-none', !visible);
+}
+
 function init() {
 	// disableAnimation()()		// TODO
 	loadTheme();
@@ -414,6 +431,8 @@ const setup = () => {
 		} else {
 			bodyElement!.classList.remove('lg:is-home');
 		}
+
+		updateProfileVisibility(pathsEqual(visit.to.url, url('/about/')));
 
 		// increase the page height during page transition to prevent the scrolling animation from jumping
 		const heightExtend = document.getElementById('page-height-extend')

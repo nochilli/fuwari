@@ -7,15 +7,30 @@ import Tag from "./Tags.astro";
 interface Props {
 	class?: string;
 	headings?: MarkdownHeading[];
+	showProfile?: boolean;
 }
 
-const className = Astro.props.class;
+const { class: className, showProfile = false } = Astro.props;
 ---
 <div id="sidebar" class:list={[className, "w-full"]}>
-    <div class="flex flex-col w-full gap-4 mb-4">
-        <Profile></Profile>
-    </div>
     <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-4 top-4 sticky top-4">
+        <div
+            id="profile-card"
+            class:list={[
+                "grid overflow-hidden transition-all duration-300 motion-reduce:transition-none",
+                {
+                    "grid-rows-[1fr] opacity-100 translate-y-0": showProfile,
+                    "grid-rows-[0fr] opacity-0 translate-y-8 -mb-4 pointer-events-none": !showProfile,
+                },
+            ]}
+            data-visible={showProfile ? "true" : "false"}
+            aria-hidden={!showProfile}
+            inert={!showProfile}
+        >
+            <div class="min-h-0 overflow-hidden">
+                <Profile />
+            </div>
+        </div>
         <Categories class="onload-animation" style="animation-delay: 150ms"></Categories>
         <Tag class="onload-animation" style="animation-delay: 200ms"></Tag>
     </div>

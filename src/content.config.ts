@@ -38,8 +38,8 @@ const postsSchema: z.ZodType<PostData> = z.object({
 const postsCollection: CollectionConfig<typeof postsSchema> = defineCollection({
 	loader: glob({
 		base: "./src/content/posts",
-		pattern: "**/*.md",
-		generateId: ({ entry }) => entry.replace(/\.md$/, ""),
+		pattern: "**/*.{md,mdx}",
+		generateId: ({ entry }) => entry.replace(/\.mdx?$/, ""),
 	}),
 	schema: postsSchema,
 });
@@ -47,7 +47,7 @@ const specSchema: z.ZodType<object> = z.object({});
 const specCollection: CollectionConfig<
 	typeof specSchema
 > = defineCollection({
-	loader: glob({ base: "./src/content/spec", pattern: "**/*.md" }),
+	loader: glob({ base: "./src/content/spec", pattern: "**/*.{md,mdx}" }),
 	schema: specSchema,
 });
 export const collections: {
