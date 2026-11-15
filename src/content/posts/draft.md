@@ -1,6 +1,6 @@
 ---
 title: Draft Example
-published: 2022-07-01
+published: 01-07-2022
 tags: [Markdown, Blogging, Demo]
 category: Examples
 draft: true
@@ -15,7 +15,7 @@ When the article is ready for publication, you can update the "draft" field to "
 ```markdown
 ---
 title: Draft Example
-published: 2024-01-11T04:40:26.381Z
+published: 11-01-2024
 tags: [Markdown, Blogging, Demo]
 category: Examples
 draft: false

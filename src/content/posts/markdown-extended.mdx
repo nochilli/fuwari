@@ -1,7 +1,7 @@
 ---
 title: Markdown Extended Features
-published: 2024-05-01
-updated: 2024-11-29
+published: 01-05-2024
+updated: 29-11-2024
 description: 'Read more about Markdown features in Fuwari'
 image: ''
 tags: [Demo, Example, Markdown, Fuwari]
@@ -9,15 +9,19 @@ category: 'Examples'
 draft: false 
 ---
 
-## GitHub Repository Cards
-You can add dynamic cards that link to GitHub repositories, on page load, the repository information is pulled from the GitHub API. 
+import GitRepo from "../../components/GitRepo.astro"
 
-::github{repo="Fabrizz/MMM-OnSpotify"}
+## Git Repository Cards
+Use the `GitRepo` component in an MDX post to embed a repository from GitHub, Codeberg, GitLab, Bitbucket, Gitea, or another Git host. Supported providers display repository details when available.
 
-Create a GitHub repository card with the code `::github{repo="<owner>/<repo>"}`.
+<GitRepo url="https://github.com/Fabrizz/MMM-OnSpotify" />
 
-```markdown
-::github{repo="saicaca/fuwari"}
+Import the component and provide the repository URL:
+
+```mdx
+import GitRepo from "../../components/GitRepo.astro"
+
+<GitRepo url="https://github.com/saicaca/fuwari" />
 ```
 
 ## Admonitions

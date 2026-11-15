@@ -5,11 +5,11 @@ import path from "path"
 
 function getDate() {
   const today = new Date()
-  const year = today.getFullYear()
-  const month = String(today.getMonth() + 1).padStart(2, "0")
   const day = String(today.getDate()).padStart(2, "0")
+  const month = String(today.getMonth() + 1).padStart(2, "0")
+  const year = today.getFullYear()
 
-  return `${year}-${month}-${day}`
+  return `${day}-${month}-${year}`
 }
 
 const args = process.argv.slice(2)

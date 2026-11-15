@@ -1,5 +1,6 @@
 ---
 import fs from "fs"
+import { formatDateToMonDYYYY, formatDateToYYYYMMDD } from "../utils/date-utils"
 import ConventionalCommitTag, {
 	type ConventionalCommitTagName,
 } from "./ConventionalCommitTag.astro"
@@ -46,7 +47,7 @@ let lastDate = ""
 }
 {
 	changelog.length > 0 && filteredCommits.length === 0 &&
-		<p style="color: #777;">No changes in the last {changelog.length} commits (since {new Date(changelog[changelog.length - 1].commit.author.date).toLocaleDateString()}).</p>
+		<p style="color: #777;">No changes in the last {changelog.length} commits (since {formatDateToMonDYYYY(new Date(changelog[changelog.length - 1].commit.author.date))}).</p>
 }
 
 <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem;">
@@ -61,12 +62,8 @@ let lastDate = ""
 				const logItem = (
 					<span style="color: #777; text-align: right">
 						{
-							lastDate !== new Date(commit.commit.author.date).toISOString().split("T")[0] &&
-							new Date(commit.commit.author.date).toLocaleDateString(undefined, {
-								year: "numeric",
-								month: "short",
-								day: "numeric",
-							})
+							lastDate !== formatDateToYYYYMMDD(new Date(commit.commit.author.date)) &&
+							formatDateToMonDYYYY(new Date(commit.commit.author.date))
 						}
 					</span>
 					<span>
@@ -97,7 +94,7 @@ let lastDate = ""
 						*/}
 					</span>
 				)
-				lastDate = new Date(commit.commit.author.date).toISOString().split("T")[0]
+				lastDate = formatDateToYYYYMMDD(new Date(commit.commit.author.date))
 				return logItem
 			})
 		}
