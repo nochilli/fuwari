@@ -22,10 +22,10 @@ Usage: npm run new-post -- <filename>`)
 
 let fileName = args[0]
 
-// Add .md extension if not present
+// Add .mdx extension if not present
 const fileExtensionRegex = /\.(md|mdx)$/i
 if (!fileExtensionRegex.test(fileName)) {
-  fileName += ".md"
+  fileName += ".mdx"
 }
 
 const targetDir = "./src/content/posts/"
@@ -49,7 +49,7 @@ description: ''
 image: ''
 tags: []
 category: ''
-draft: false 
+draft: false
 lang: ''
 ---
 `
