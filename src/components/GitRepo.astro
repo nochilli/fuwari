@@ -1,0 +1,507 @@
+---
+import { Icon } from "astro-icon/components";
+import "../styles/markdown-extend.styl";
+
+interface Props {
+	url: string;
+}
+
+const { url: repositoryUrl } = Astro.props;
+
+let parsedUrl: URL;
+try {
+	parsedUrl = new URL(repositoryUrl);
+} catch {
+	throw new TypeError("GitRepo requires a valid repository URL.");
+}
+
+if (
+	parsedUrl.protocol !== "https:" ||
+	parsedUrl.username ||
+	parsedUrl.password
+) {
+	throw new TypeError("GitRepo requires a public HTTPS repository URL.");
+}
+
+const pathParts = parsedUrl.pathname.split("/").filter(Boolean);
+const resourcePathIndex = pathParts.findIndex(
+	(part, index) =>
+		index >= 2 &&
+		[
+			"-",
+			"blob",
+			"branches",
+			"commit",
+			"commits",
+			"issues",
+			"pull",
+			"pulls",
+			"releases",
+			"src",
+			"tree",
+		].includes(part.toLowerCase()),
+);
+const repoParts = pathParts
+	.slice(0, resourcePathIndex < 0 ? pathParts.length : resourcePathIndex)
+	.map((part, index, parts) =>
+		index === parts.length - 1 ? part.replace(/\.git$/i, "") : part,
+	);
+
+if (repoParts.length < 2 || !repoParts[repoParts.length - 1]) {
+	throw new TypeError("GitRepo URL must include an owner and repository name.");
+}
+
+const host = parsedUrl.hostname.toLowerCase().replace(/^www\./, "");
+const repoPath = repoParts.join("/");
+const encodedRepoPath = repoParts.map(encodeURIComponent).join("/");
+const repoName = repoParts[repoParts.length - 1];
+const ownerName = repoParts.slice(0, -1).join("/");
+const linkUrl = new URL(parsedUrl);
+linkUrl.pathname = `/${repoParts.join("/")}`;
+linkUrl.search = "";
+linkUrl.hash = "";
+
+const providers: Record<
+	string,
+	{ name: string; apiUrl?: string; fundingApiUrl?: string }
+> = {
+	"github.com": {
+		name: "GitHub",
+		apiUrl: `https://api.github.com/repos/${encodedRepoPath}`,
+		fundingApiUrl: `https://api.github.com/repos/${encodedRepoPath}/contents/.github/FUNDING.yml`,
+	},
+	"codeberg.org": {
+		name: "Codeberg",
+		apiUrl: `https://codeberg.org/api/v1/repos/${encodedRepoPath}`,
+	},
+	"gitlab.com": {
+		name: "GitLab",
+		apiUrl: `https://gitlab.com/api/v4/projects/${encodeURIComponent(repoPath)}`,
+	},
+	"bitbucket.org": {
+		name: "Bitbucket",
+		apiUrl: `https://api.bitbucket.org/2.0/repositories/${encodedRepoPath}`,
+	},
+	"gitea.com": {
+		name: "Gitea",
+		apiUrl: `https://gitea.com/api/v1/repos/${encodedRepoPath}`,
+	},
+};
+const provider = providers[host] ?? { name: host };
+---
+
+<div
+	class:list={["card-git-repo", { "fetch-waiting": Boolean(provider.apiUrl) }]}
+	data-api={provider.apiUrl}
+	data-funding-api={provider.fundingApiUrl}
+>
+	<a
+		class="gc-repo-link no-styling"
+		href={linkUrl.href}
+		target="_blank"
+		rel="noopener noreferrer"
+	>
+		<div class="gc-titlebar">
+			<div class="gc-titlebar-left">
+				<div class="gc-owner">
+					<div class="gc-avatar"></div>
+					<div class="gc-user">{ownerName}</div>
+				</div>
+				<div class="gc-divider">/</div>
+				<div class="gc-repo">{repoName}</div>
+			</div>
+			<div class="git-host-name">{provider.name}</div>
+		</div>
+		<div class="gc-description">
+			{provider.apiUrl ? "Loading repository information..." : `Repository hosted on ${host}.`}
+		</div>
+	</a>
+	{provider.apiUrl && (
+		<div class="gc-infobar">
+			<div class="gc-stars">—</div>
+			<div class="gc-forks">—</div>
+			<div class="gc-license">—</div>
+			<span class="gc-language"></span>
+			<div class="gc-sponsor-links" aria-label="Funding links" hidden>
+				<span class="gc-sponsor-label">Sponsor:</span>
+				<template data-funding-icon="linuxfoundation">
+					<Icon name="simple-icons:linuxfoundation" class="gc-sponsor-icon" aria-hidden="true" />
+				</template>
+				<template data-funding-icon="kofi">
+					<Icon name="simple-icons:kofi" class="gc-sponsor-icon" aria-hidden="true" />
+				</template>
+				<template data-funding-icon="liberapay">
+					<Icon name="simple-icons:liberapay" class="gc-sponsor-icon" aria-hidden="true" />
+				</template>
+				<template data-funding-icon="opencollective">
+					<Icon name="simple-icons:opencollective" class="gc-sponsor-icon" aria-hidden="true" />
+				</template>
+				<template data-funding-icon="patreon">
+					<Icon name="simple-icons:patreon" class="gc-sponsor-icon" aria-hidden="true" />
+				</template>
+				<template data-funding-icon="sonar">
+					<Icon name="simple-icons:sonar" class="gc-sponsor-icon" aria-hidden="true" />
+				</template>
+				<template data-funding-icon="buymeacoffee">
+					<Icon name="simple-icons:buymeacoffee" class="gc-sponsor-icon" aria-hidden="true" />
+				</template>
+				<template data-funding-icon="fallback">
+					<Icon name="fa6-solid:arrow-up-right-from-square" class="gc-sponsor-icon" aria-hidden="true" />
+				</template>
+			</div>
+		</div>
+	)}
+</div>
+
+<script>
+interface RepositoryResponse {
+	description?: string | null;
+	language?: string | null;
+	forks?: number;
+	forks_count?: number;
+	stargazers_count?: number;
+	stars_count?: number;
+	star_count?: number;
+	license?: string | { spdx_id?: string; name?: string } | null;
+	owner?: { avatar_url?: string; links?: { avatar?: { href?: string } } };
+	namespace?: { avatar_url?: string };
+	avatar_url?: string;
+	links?: { avatar?: { href?: string } };
+}
+
+interface GitHubFileResponse {
+	content?: string;
+	encoding?: string;
+}
+
+interface FundingLink {
+	platform: string;
+	label: string;
+	url: string;
+	iconTemplate?: string;
+	iconUrl?: string;
+}
+
+const compactNumber = new Intl.NumberFormat("en-US", {
+	notation: "compact",
+	maximumFractionDigits: 1,
+});
+
+const fundingPlatforms: Record<
+	string,
+	{
+		label: string;
+		url: (value: string) => string | undefined;
+		iconTemplate?: string;
+		iconUrl?: string;
+	}
+> = {
+	github: {
+		label: "GitHub Sponsors",
+		url: (value) => `https://github.com/sponsors/${encodeURIComponent(value)}`,
+	},
+	community_bridge: {
+		label: "LFX Mentorship",
+		iconTemplate: "linuxfoundation",
+		url: (value) =>
+			`https://funding.communitybridge.org/projects/${encodeURIComponent(value)}`,
+	},
+	issuehunt: {
+		label: "IssueHunt",
+		iconUrl: "https://issuehunt.io/favicon.ico",
+		url: (value) => `https://issuehunt.io/r/${encodeURIComponent(value)}`,
+	},
+	ko_fi: {
+		label: "Ko-fi",
+		iconTemplate: "kofi",
+		url: (value) => `https://ko-fi.com/${encodeURIComponent(value)}`,
+	},
+	liberapay: {
+		label: "Liberapay",
+		iconTemplate: "liberapay",
+		url: (value) => `https://liberapay.com/${encodeURIComponent(value)}/donate`,
+	},
+	open_collective: {
+		label: "Open Collective",
+		iconTemplate: "opencollective",
+		url: (value) => `https://opencollective.com/${encodeURIComponent(value)}`,
+	},
+	patreon: {
+		label: "Patreon",
+		iconTemplate: "patreon",
+		url: (value) => `https://www.patreon.com/${encodeURIComponent(value)}`,
+	},
+	tidelift: {
+		label: "Tidelift",
+		iconTemplate: "sonar",
+		url: (value) =>
+			`https://tidelift.com/subscription/pkg/${value
+				.split("/")
+				.map(encodeURIComponent)
+				.join("/")}`,
+	},
+	polar: {
+		label: "Polar",
+		iconUrl: "https://polar.sh/favicon.ico",
+		url: (value) => `https://polar.sh/${encodeURIComponent(value)}`,
+	},
+	buy_me_a_coffee: {
+		label: "Buy Me a Coffee",
+		iconTemplate: "buymeacoffee",
+		url: (value) => `https://www.buymeacoffee.com/${encodeURIComponent(value)}`,
+	},
+	thanks_dev: {
+		label: "thanks.dev",
+		iconUrl: "https://thanks.dev/favicon.ico",
+		url: (value) =>
+			`https://thanks.dev/${value.split("/").map(encodeURIComponent).join("/")}`,
+	},
+	custom: {
+		label: "Sponsor",
+		iconTemplate: "fallback",
+		url: (value) => {
+			try {
+				const url = new URL(value.includes("://") ? value : `https://${value}`);
+				return url.protocol === "https:" && !url.username && !url.password
+					? url.href
+					: undefined;
+			} catch {
+				return undefined;
+			}
+		},
+	},
+};
+
+function parseFundingLinks(fundingFile: string): FundingLink[] {
+	const links: FundingLink[] = [];
+
+	for (const line of fundingFile.split(/\r?\n/)) {
+		const cleanLine = line.replace(/\s+#.*$/, "").trim();
+		if (!cleanLine || cleanLine.startsWith("#")) continue;
+
+		const match = /^([a-z_]+):\s*(.*?)\s*$/i.exec(cleanLine);
+		if (!match) continue;
+
+		const platform = fundingPlatforms[match[1].toLowerCase()];
+		if (!platform) continue;
+
+		const values =
+			match[2].startsWith("[") && match[2].endsWith("]")
+				? match[2].slice(1, -1).split(",")
+				: [match[2]];
+
+		for (const rawValue of values) {
+			const value = rawValue.trim().replace(/^(['"])(.*)\1$/, "$2");
+			if (!value) continue;
+
+			const url = platform.url(value);
+			if (url) {
+				links.push({
+					platform: match[1].toLowerCase(),
+					label: platform.label,
+					url,
+					iconTemplate: platform.iconTemplate,
+					iconUrl: platform.iconUrl,
+				});
+			}
+		}
+	}
+
+	return [...new Map(links.map((link) => [link.url, link])).values()];
+}
+
+function decodeBase64Content(content: string): string {
+	const binary = atob(content.replace(/\s/g, ""));
+	const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+	return new TextDecoder().decode(bytes);
+}
+
+function cloneFundingIcon(container: HTMLElement, name: string): Node {
+	const template = container.querySelector<HTMLTemplateElement>(
+		`template[data-funding-icon="${name}"]`,
+	);
+	const icon = template?.content.firstElementChild;
+	if (!icon) throw new Error(`Missing funding icon template: ${name}`);
+	return icon.cloneNode(true);
+}
+
+function createGitHubSponsorIcon(): SVGSVGElement {
+	const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	icon.setAttribute("viewBox", "0 0 16 16");
+	icon.setAttribute("aria-hidden", "true");
+	icon.setAttribute("focusable", "false");
+	icon.classList.add("gc-sponsor-icon");
+
+	const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+	path.setAttribute(
+		"d",
+		"M8 14.5S1.5 10.6 1.5 6.4a3.4 3.4 0 0 1 6.5-1.5 3.4 3.4 0 0 1 6.5 1.5c0 4.2-6.5 8.1-6.5 8.1Z",
+	);
+	icon.append(path);
+	return icon;
+}
+
+function createServiceIcon(
+	container: HTMLElement,
+	{ iconTemplate, iconUrl }: FundingLink,
+): Node {
+	if (iconUrl) {
+		const image = document.createElement("img");
+		image.className = "gc-sponsor-icon";
+		image.src = iconUrl;
+		image.alt = "";
+		image.referrerPolicy = "no-referrer";
+		image.setAttribute("aria-hidden", "true");
+		image.addEventListener(
+			"error",
+			() => image.replaceWith(cloneFundingIcon(container, "fallback")),
+			{ once: true },
+		);
+		return image;
+	}
+
+	return cloneFundingIcon(container, iconTemplate ?? "fallback");
+}
+
+function addSponsorLinks(container: HTMLElement, links: FundingLink[]) {
+	for (const fundingLink of links) {
+		const { platform, label, url } = fundingLink;
+		const link = document.createElement("a");
+		link.className = "gc-sponsor-link no-styling";
+		link.dataset.platform = platform;
+		link.href = url;
+		link.target = "_blank";
+		link.rel = "noopener noreferrer";
+		link.title = `Sponsor via ${label}`;
+		link.setAttribute("aria-label", `Sponsor via ${label}`);
+
+		link.append(
+			platform === "github"
+				? createGitHubSponsorIcon()
+				: createServiceIcon(container, fundingLink),
+		);
+		container.append(link);
+	}
+}
+
+async function loadSponsorLinks(card: HTMLElement, fundingApiUrl: string) {
+	try {
+		const response = await fetch(fundingApiUrl, {
+			referrerPolicy: "no-referrer",
+		});
+		if (response.status === 404) return;
+		if (!response.ok) {
+			throw new Error(`Funding API returned HTTP ${response.status}`);
+		}
+
+		const file = (await response.json()) as GitHubFileResponse;
+		if (file.encoding !== "base64" || !file.content) {
+			throw new Error("Funding API returned an unexpected file format");
+		}
+
+		const links = parseFundingLinks(decodeBase64Content(file.content));
+		const container = card.querySelector<HTMLElement>(".gc-sponsor-links");
+		if (container && links.length > 0) {
+			addSponsorLinks(container, links);
+			container.hidden = false;
+		}
+	} catch (error: unknown) {
+		console.warn(
+			`[GIT-REPO-CARD] Failed to load funding links for ${card.dataset.api}.`,
+			error,
+		);
+	}
+}
+
+function loadRepositoryCard(card: HTMLElement) {
+	if (card.dataset.fetchStarted) return;
+	card.dataset.fetchStarted = "true";
+
+	const description = card.querySelector<HTMLElement>(".gc-description");
+	const stars = card.querySelector<HTMLElement>(".gc-stars");
+	const forks = card.querySelector<HTMLElement>(".gc-forks");
+	const license = card.querySelector<HTMLElement>(".gc-license");
+	const avatar = card.querySelector<HTMLElement>(".gc-avatar");
+	const apiUrl = card.dataset.api;
+	const fundingApiUrl = card.dataset.fundingApi;
+
+	if (!apiUrl || !description || !stars || !forks || !license || !avatar) return;
+
+	if (fundingApiUrl) void loadSponsorLinks(card, fundingApiUrl);
+
+	fetch(apiUrl, { referrerPolicy: "no-referrer" })
+		.then(async (response) => {
+			if (!response.ok) {
+				throw new Error(`Repository API returned HTTP ${response.status}`);
+			}
+			return (await response.json()) as RepositoryResponse;
+		})
+		.then((data) => {
+			description.textContent =
+				data.description?.replace(/:[a-zA-Z0-9_]+:/g, "") || "Description not set";
+
+			const starCount = data.stargazers_count ?? data.stars_count ?? data.star_count;
+			const forkCount = data.forks ?? data.forks_count;
+			stars.textContent =
+				typeof starCount === "number" && Number.isFinite(starCount)
+					? compactNumber.format(starCount)
+					: "—";
+			forks.textContent =
+				typeof forkCount === "number" && Number.isFinite(forkCount)
+					? compactNumber.format(forkCount)
+					: "—";
+			license.textContent =
+				typeof data.license === "string"
+					? data.license
+					: data.license?.spdx_id ?? data.license?.name ?? "no-license";
+
+			const avatarUrl =
+				data.owner?.avatar_url ??
+				data.namespace?.avatar_url ??
+				data.avatar_url ??
+				data.owner?.links?.avatar?.href ??
+				data.links?.avatar?.href;
+			if (avatarUrl) {
+				const parsedAvatarUrl = new URL(avatarUrl, apiUrl);
+				if (parsedAvatarUrl.protocol === "https:") {
+					avatar.style.backgroundImage = `url("${parsedAvatarUrl.href}")`;
+					avatar.style.backgroundColor = "transparent";
+				}
+			}
+
+			card.classList.remove("fetch-waiting");
+		})
+		.catch((error: unknown) => {
+			description.textContent = "Repository details could not be loaded.";
+			card.classList.remove("fetch-waiting");
+			card.classList.add("fetch-error");
+			console.warn(
+				`[GIT-REPO-CARD] Failed to load ${card.querySelector<HTMLAnchorElement>(".gc-repo-link")?.href}.`,
+				error,
+			);
+		});
+}
+
+function loadRepositoryCards(root: ParentNode) {
+	if (
+		root instanceof HTMLElement &&
+		root.matches(".card-git-repo[data-api]")
+	) {
+		loadRepositoryCard(root);
+	}
+
+	for (const card of root.querySelectorAll<HTMLElement>(
+		".card-git-repo[data-api]",
+	)) {
+		loadRepositoryCard(card);
+	}
+}
+
+loadRepositoryCards(document);
+
+new MutationObserver((records) => {
+	for (const node of records.flatMap((record) => Array.from(record.addedNodes))) {
+		if (node instanceof Element) loadRepositoryCards(node);
+	}
+}).observe(document.body, { childList: true, subtree: true });
+</script>
