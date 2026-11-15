@@ -16,7 +16,9 @@
 - **Recent changes** can display filtered Conventional Commit entries and breaking-change badges when a `public/changelog.json` file is available.
 - **Date handling:** switched to post frontmatter dates in `DD-MM-YYYY` format. Dates display as `Mon D` in the archive and `Mon D YYYY` on posts.
 - **UI refinements:** include button-style post tags, show profile only in about page, footer formatting etc..
-
+- **Renamed `/archive/`** to `/posts/`
+- **Maple mono** monospace font
+  
 ## Embedding components in posts
 
 Posts that import Astro components should use the `.mdx` format.
