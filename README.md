@@ -8,6 +8,8 @@
 
 # https://github.com/saicaca/fuwari
 
+`main` is fuwari compatible. `dev` has additional features with breaking changes
+
 ## 📄 License
 
 This project is licensed under the MIT License.
