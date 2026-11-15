@@ -35,10 +35,10 @@ importers:
       '@expressive-code/plugin-line-numbers':
         specifier: ^0.44.3
         version: 0.44.3
-      '@fontsource-variable/jetbrains-mono':
+      '@fontsource-variable/inter':
         specifier: ^5.3.0
         version: 5.3.0
-      '@fontsource/roboto':
+      '@fontsource/maple-mono':
         specifier: ^5.3.0
         version: 5.3.0
       '@iconify-json/fa6-brands':
