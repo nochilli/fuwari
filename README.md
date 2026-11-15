@@ -8,8 +8,50 @@
 
 # https://github.com/saicaca/fuwari
 
+## Added Features
+
+- **Repository cards** for GitHub, Codeberg, GitLab, Bitbucket, and Gitea. Other HTTPS repository links render a basic card. GitHub cards can show funding links from `.github/FUNDING.yml`, with service-specific icons.
+- **Repository API caching** in the browser: metadata and funding data are cached for 24 hours. Cached data can be used for up to 30 days when an API is rate-limited or temporarily unavailable.
+- **YouTube embeds** with lazy-loaded, privacy-enhanced playback.
+- **Recent changes** can display filtered Conventional Commit entries and breaking-change badges when a `public/changelog.json` file is available.
+- **Date handling:** switched to post frontmatter dates in `DD-MM-YYYY` format. Dates display as `Mon D` in the archive and `Mon D YYYY` on posts.
+- **UI refinements:** include button-style post tags, show profile only in about page, footer formatting etc..
+
+## Embedding components in posts
+
+Posts that import Astro components should use the `.mdx` format.
+
+### Git repository
+
+```mdx
+import GitRepo from "../../components/GitRepo.astro"
+
+<GitRepo url="https://github.com/owner/repository" />
+```
+
+GitHub funding links are read from the repository's `.github/FUNDING.yml`. Supported entries include: GitHub Sponsors, LFX/Community Bridge, IssueHunt, Ko-fi, Liberapay, Open Collective, Patreon, Tidelift, Polar, Buy Me a Coffee, thanks.dev, and custom links.
+
+### YouTube video
+
+Use either a video ID or a YouTube URL:
+
+```mdx
+import YoutubePlayer from "../../components/YoutubePlayer.astro"
+
+<YoutubePlayer videoId="abcdefghijk" />
+<YoutubePlayer videoURL="https://youtu.be/abcdefghijk" title="Video title" />
+```
+
+### Post dates
+
+New posts can be created with `pnpm new-post <filename>`. The generated `published` date uses `DD-MM-YYYY`:
+
+```yaml
+published: 15-11-2026
+```
+
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. Contains MIT licensed Astro components from [Dylancyclone](https://github.com/Dylancyclone/ansible-homelab-orchestration/tree/main/docs/src/components) 
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaicaca%2Ffuwari.svg?type=large&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaicaca%2Ffuwari?ref=badge_large&issueType=license)
