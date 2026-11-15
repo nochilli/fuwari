@@ -52,6 +52,27 @@ export function formatDateToMonDYYYY(date: Date): string {
 	return `${monthAbbreviations[month]} ${day} ${year}`;
 }
 
+export function formatRelativeTime(date: Date, now = new Date()): string {
+	if (!Number.isFinite(date.getTime()) || !Number.isFinite(now.getTime())) {
+		throw new RangeError("Invalid date");
+	}
+
+	const differenceInSeconds = Math.round((date.getTime() - now.getTime()) / 1000);
+	const absoluteDifference = Math.abs(differenceInSeconds);
+	const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+
+	if (absoluteDifference < 60) {
+		return formatter.format(differenceInSeconds, "second");
+	}
+	if (absoluteDifference < 60 * 60) {
+		return formatter.format(Math.round(differenceInSeconds / 60), "minute");
+	}
+	if (absoluteDifference < 24 * 60 * 60) {
+		return formatter.format(Math.round(differenceInSeconds / (60 * 60)), "hour");
+	}
+	return formatter.format(Math.round(differenceInSeconds / (24 * 60 * 60)), "day");
+}
+
 export function formatDateToYYYYMMDD(date: Date): string {
 	const { day, month, year } = getUtcDateParts(date);
 	return `${year}-${(month + 1).toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;

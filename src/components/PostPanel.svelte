@@ -36,7 +36,40 @@ function formatTag(tagList: string[]) {
 	return tagList.map((t) => `#${t}`).join(" ");
 }
 
+function markFilterControl(link: HTMLAnchorElement, selected: boolean) {
+	const control = link.querySelector<HTMLElement>("button") ?? link;
+	if (selected) {
+		link.setAttribute("aria-current", "page");
+		control.classList.add("post-filter-active");
+	} else {
+		link.removeAttribute("aria-current");
+		control.classList.remove("post-filter-active");
+	}
+}
+
+function highlightAppliedFilters() {
+	const selectedTags = new Set(tags);
+	const selectedCategories = new Set(categories);
+
+	document.querySelectorAll<HTMLAnchorElement>("#tags a[href]").forEach((link) => {
+		const tag = new URL(link.href).searchParams.get("tag");
+		markFilterControl(link, tag !== null && selectedTags.has(tag));
+	});
+
+	document
+		.querySelectorAll<HTMLAnchorElement>("#categories a[href]")
+		.forEach((link) => {
+			const linkParams = new URL(link.href).searchParams;
+			const selected = linkParams.has("uncategorized")
+				? Boolean(uncategorized)
+				: selectedCategories.has(linkParams.get("category") ?? "");
+			markFilterControl(link, selected);
+		});
+}
+
 onMount(async () => {
+	highlightAppliedFilters();
+
 	let filteredPosts: Post[] = sortedPosts;
 
 	if (tags.length > 0) {
