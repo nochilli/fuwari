@@ -369,6 +369,40 @@ function updateProfileVisibility(visible: boolean) {
 	profileCard.classList.toggle('pointer-events-none', !visible);
 }
 
+function updateCategoriesVisibility(visible: boolean) {
+	const categoriesCard = document.getElementById('categories-card');
+	if (!categoriesCard || categoriesCard.dataset.visible === String(visible)) return;
+
+	categoriesCard.dataset.visible = String(visible);
+	categoriesCard.setAttribute('aria-hidden', String(!visible));
+	categoriesCard.inert = !visible;
+	categoriesCard.classList.toggle('grid-rows-[1fr]', visible);
+	categoriesCard.classList.toggle('grid-rows-[0fr]', !visible);
+	categoriesCard.classList.toggle('opacity-100', visible);
+	categoriesCard.classList.toggle('opacity-0', !visible);
+	categoriesCard.classList.toggle('translate-y-0', visible);
+	categoriesCard.classList.toggle('translate-y-8', !visible);
+	categoriesCard.classList.toggle('-mb-4', !visible);
+	categoriesCard.classList.toggle('pointer-events-none', !visible);
+}
+
+function updateTagsVisibility(visible: boolean) {
+	const tagsCard = document.getElementById('tags-card');
+	if (!tagsCard || tagsCard.dataset.visible === String(visible)) return;
+
+	tagsCard.dataset.visible = String(visible);
+	tagsCard.setAttribute('aria-hidden', String(!visible));
+	tagsCard.inert = !visible;
+	tagsCard.classList.toggle('grid-rows-[1fr]', visible);
+	tagsCard.classList.toggle('grid-rows-[0fr]', !visible);
+	tagsCard.classList.toggle('opacity-100', visible);
+	tagsCard.classList.toggle('opacity-0', !visible);
+	tagsCard.classList.toggle('translate-y-0', visible);
+	tagsCard.classList.toggle('translate-y-8', !visible);
+	tagsCard.classList.toggle('-mb-4', !visible);
+	tagsCard.classList.toggle('pointer-events-none', !visible);
+}
+
 function init() {
 	// disableAnimation()()		// TODO
 	loadTheme();
@@ -421,6 +455,8 @@ const setup = () => {
 		}
 
 		updateProfileVisibility(pathsEqual(visit.to.url, url('/about/')));
+		updateCategoriesVisibility(true);
+		updateTagsVisibility(true);
 
 		// increase the page height during page transition to prevent the scrolling animation from jumping
 		const heightExtend = document.getElementById('page-height-extend')
