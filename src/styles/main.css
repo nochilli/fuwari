@@ -4,6 +4,16 @@
 :root {
     --site-font-sans: "Inter Variable", sans-serif;
     --site-font-mono: "Maple Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --site-font-heading: "Solway", serif;
+    --site-font-highlight: "Tilt Neon", sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, #navbar, .font-heading {
+    font-family: var(--site-font-heading);
+}
+
+.font-highlight, #tags a, #categories a, #categories button {
+    font-family: var(--site-font-highlight);
 }
 
 @utility expand-animation {
